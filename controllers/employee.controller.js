@@ -1,16 +1,24 @@
 const sql = require("mssql");
 
 //for fetch all users
+// Add pagination to fetch users
 module.exports.getEmployee = (req, res, next) => {
   try {
-    sql.query("select * from emp", (err, recordset) => {
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
+
+    const offset = (page - 1) * perPage;
+
+    const query = `SELECT * FROM emp ORDER BY emp_id OFFSET ${offset} ROWS FETCH NEXT ${perPage} ROWS ONLY`;
+
+    sql.query(query, (err, recordset) => {
       if (err) {
         return res.status(500).json({ success: false, message: err });
       }
 
       return res.status(200).json({
         success: true,
-        message: "employee fetched successfully",
+        message: "Employees fetched successfully",
         employees: recordset.recordset,
       });
     });
